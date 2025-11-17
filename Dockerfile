@@ -1,9 +1,14 @@
-FROM eclipse-temurin:17-jdk AS build
-WORKDIR /app
-COPY . .
-RUN ./mvnw clean package -DskipTests
+# Use a lightweight JRE image for running the app
+FROM eclipse-temurin:17-jre
 
-FROM eclipse-temurin:17-jdk
-COPY --from=build /app/target/*.jar /app/app.jar
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# App working directory
+WORKDIR /app
+
+# Copy the built JAR from the Maven build step
+# Tekton builds the project in /workspace/source and the Docker context is the repo root,
+# so "target/*.jar" will contain the jar we just built.
+COPY target/*.jar app.jar
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "app.jar"]
 
